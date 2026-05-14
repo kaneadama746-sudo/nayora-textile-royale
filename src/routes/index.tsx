@@ -17,16 +17,37 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const collections = [
-  { name: "Wax Hittaguet", desc: "Tissu wax aux motifs vibrants, parfait pour vos tenues du quotidien.", img: waxHittaguet },
-  { name: "Wax Hollandaise", desc: "L'authentique wax hollandais, qualité supérieure et couleurs éclatantes.", img: waxHollandaise },
-  { name: "Bazin Riche", desc: "Le tissu noble par excellence, idéal pour les grandes occasions.", img: mazinGold },
-  { name: "Bazin Gold VIP", desc: "Notre gamme prestige, brillance et raffinement absolus.", img: mazinGold },
-  { name: "Bazin Simple", desc: "Élégance accessible pour toutes vos confections.", img: mazinGold },
-  { name: "Brodé Simple", desc: "Broderies fines et délicates, finition soignée.", img: brode },
-  { name: "Brodé Unisexe", desc: "Une collection moderne pensée pour homme et femme.", img: brode },
-  { name: "Brodé de la Mode", desc: "Les dernières tendances brodées de la saison.", img: brode },
+type ColorOption = { name: string; hex: string };
+
+const ALL_COLORS: ColorOption[] = [
+  { name: "Bleu nuit", hex: "#0b1e3f" },
+  { name: "Doré", hex: "#c9a84c" },
+  { name: "Blanc", hex: "#f5f3ee" },
+  { name: "Noir", hex: "#0d0d0d" },
+  { name: "Rouge", hex: "#b91c1c" },
+  { name: "Vert", hex: "#15803d" },
+  { name: "Jaune", hex: "#eab308" },
+  { name: "Orange", hex: "#ea580c" },
+  { name: "Rose", hex: "#db2777" },
+  { name: "Violet", hex: "#7c3aed" },
+  { name: "Marron", hex: "#78350f" },
+  { name: "Beige", hex: "#d6c7a8" },
+  { name: "Turquoise", hex: "#14b8a6" },
+  { name: "Bordeaux", hex: "#7f1d1d" },
 ];
+
+const collections = [
+  { name: "Wax Hittaguet", desc: "Tissu wax aux motifs vibrants, parfait pour vos tenues du quotidien.", img: waxHittaguet, colors: ["Bleu nuit", "Rouge", "Jaune", "Vert", "Orange", "Noir"] },
+  { name: "Wax Hollandaise", desc: "L'authentique wax hollandais, qualité supérieure et couleurs éclatantes.", img: waxHollandaise, colors: ["Bleu nuit", "Rouge", "Vert", "Jaune", "Rose", "Turquoise"] },
+  { name: "Bazin Riche", desc: "Le tissu noble par excellence, idéal pour les grandes occasions.", img: mazinGold, colors: ["Doré", "Bleu nuit", "Blanc", "Bordeaux", "Violet", "Vert"] },
+  { name: "Bazin Gold VIP", desc: "Notre gamme prestige, brillance et raffinement absolus.", img: mazinGold, colors: ["Doré", "Blanc", "Noir", "Bleu nuit", "Bordeaux"] },
+  { name: "Bazin Simple", desc: "Élégance accessible pour toutes vos confections.", img: mazinGold, colors: ["Blanc", "Beige", "Bleu nuit", "Rose", "Vert", "Jaune"] },
+  { name: "Brodé Simple", desc: "Broderies fines et délicates, finition soignée.", img: brode, colors: ["Blanc", "Beige", "Bleu nuit", "Doré"] },
+  { name: "Brodé Unisexe", desc: "Une collection moderne pensée pour homme et femme.", img: brode, colors: ["Bleu nuit", "Noir", "Blanc", "Marron", "Beige"] },
+  { name: "Brodé de la Mode", desc: "Les dernières tendances brodées de la saison.", img: brode, colors: ["Doré", "Rose", "Violet", "Turquoise", "Bordeaux", "Bleu nuit"] },
+];
+
+const colorMap = Object.fromEntries(ALL_COLORS.map(c => [c.name, c.hex]));
 
 const features = [
   { icon: Sparkles, title: "Qualité Premium", desc: "Tissus sélectionnés avec soin auprès des meilleurs fournisseurs." },

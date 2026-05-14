@@ -69,7 +69,7 @@ export const updateQuoteRequest = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     await ensureAdmin(supabase, userId);
-    const patch: Record<string, unknown> = {};
+    const patch: { status?: string; admin_notes?: string | null } = {};
     if (data.status !== undefined) patch.status = data.status;
     if (data.admin_notes !== undefined) patch.admin_notes = data.admin_notes;
     const { error } = await supabase

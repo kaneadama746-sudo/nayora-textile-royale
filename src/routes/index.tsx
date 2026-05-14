@@ -326,45 +326,80 @@ function Index() {
                   <div className="text-muted-foreground">Marché HLM 5, Dakar — Sénégal</div>
                 </div>
               </div>
-              <div className="flex items-start gap-4">
+              <a href={tel} className="flex items-start gap-4 group">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-gold)" }}>
                   <Phone className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <div className="font-semibold text-primary">Téléphone / WhatsApp</div>
-                  <div className="text-muted-foreground">+221 — à compléter</div>
+                  <div className="text-muted-foreground group-hover:text-gold transition">{CONTACT_PHONE}</div>
                 </div>
-              </div>
-              <div className="flex items-start gap-4">
+              </a>
+              <a href={mailto("Contact NAYORA TEXTILE")} className="flex items-start gap-4 group">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-gold)" }}>
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <div className="font-semibold text-primary">Email</div>
-                  <div className="text-muted-foreground">contact@nayoratextile.sn</div>
+                  <div className="text-muted-foreground group-hover:text-gold transition">{CONTACT_EMAIL}</div>
                 </div>
-              </div>
+              </a>
             </div>
-            <a href={whatsapp} target="_blank" rel="noreferrer"
-               className="mt-8 inline-flex items-center gap-2 px-8 py-4 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition shadow-[var(--shadow-royal)]">
-              <MessageCircle className="h-5 w-5" /> Discuter sur WhatsApp
-            </a>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href={whatsapp} target="_blank" rel="noreferrer"
+                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-[var(--shadow-royal)]">
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </a>
+              <a href={tel}
+                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition">
+                <Phone className="h-4 w-4" /> Appeler
+              </a>
+              <a href={mailto("Demande NAYORA TEXTILE")}
+                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gold text-primary hover:bg-gold-soft transition">
+                <Mail className="h-4 w-4" /> Email
+              </a>
+            </div>
           </div>
-          <form className="p-8 rounded-2xl bg-card border border-border space-y-4 shadow-[var(--shadow-gold)]"
-                onSubmit={(e) => { e.preventDefault(); window.open(whatsapp, "_blank"); }}>
+          <form onSubmit={onSubmit}
+                className="p-8 rounded-2xl bg-card border border-border space-y-4 shadow-[var(--shadow-gold)]">
             <h3 className="font-serif text-2xl text-primary mb-2">Demande de devis</h3>
-            <input required placeholder="Votre nom" className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
-            <input required type="tel" placeholder="Téléphone" className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
-            <select className="w-full px-4 py-3 rounded-lg border border-input bg-background">
-              <option>Type de tissu souhaité</option>
-              {collections.map(c => <option key={c.name}>{c.name}</option>)}
-              <option>Autre tissu</option>
-            </select>
-            <textarea rows={4} placeholder="Votre message (quantité, couleur, etc.)"
-                      className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
-            <button className="w-full py-3 rounded-lg bg-gold text-primary font-semibold hover:bg-gold-soft transition">
-              Envoyer la demande
-            </button>
+            <p className="text-sm text-muted-foreground -mt-2 mb-2">
+              Nous enregistrons votre demande et vous recontactons rapidement.
+            </p>
+            {sent ? (
+              <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-center">
+                <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto mb-2" />
+                <p className="font-semibold text-primary">Merci ! Votre demande a bien été enregistrée.</p>
+                <p className="text-sm text-muted-foreground mt-1">Nous vous contacterons très vite.</p>
+                <button type="button" onClick={() => setSent(false)} className="mt-4 text-sm text-gold hover:underline">
+                  Envoyer une autre demande
+                </button>
+              </div>
+            ) : (
+              <>
+                <input required maxLength={100} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                       placeholder="Votre nom" className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
+                <input required type="tel" maxLength={40} value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
+                       placeholder="Téléphone (WhatsApp de préférence)" className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
+                <input type="email" maxLength={255} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                       placeholder="Email (optionnel)" className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
+                <select value={form.fabric} onChange={e => setForm({ ...form, fabric: e.target.value })}
+                        className="w-full px-4 py-3 rounded-lg border border-input bg-background">
+                  <option value="">Type de tissu souhaité</option>
+                  {collections.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  <option value="Autre">Autre tissu</option>
+                </select>
+                <textarea rows={4} maxLength={1500} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
+                          placeholder="Votre message (quantité, couleur, etc.)"
+                          className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
+                {formError && <p className="text-sm text-destructive">{formError}</p>}
+                <button type="submit" disabled={sending}
+                        className="w-full py-3 rounded-lg bg-gold text-primary font-semibold hover:bg-gold-soft transition flex items-center justify-center gap-2 disabled:opacity-60">
+                  {sending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Envoyer la demande
+                </button>
+              </>
+            )}
           </form>
         </div>
       </section>

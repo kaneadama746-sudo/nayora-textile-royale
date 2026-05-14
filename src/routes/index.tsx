@@ -161,8 +161,52 @@ function Index() {
               dans toutes ses couleurs et finitions.
             </p>
           </div>
+          {/* Filtre par couleur */}
+          <div className="mb-10 p-5 rounded-2xl bg-card border border-border">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div>
+                <p className="text-xs tracking-[0.25em] uppercase text-gold mb-1">Filtrer par couleur</p>
+                <p className="text-sm text-muted-foreground">
+                  {colorFilter
+                    ? <>Tissus disponibles en <span className="font-semibold text-primary">{colorFilter}</span> ({filteredCollections.length})</>
+                    : "Cliquez sur une couleur pour affiner votre recherche"}
+                </p>
+              </div>
+              {colorFilter && (
+                <button onClick={() => setColorFilter(null)}
+                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-gold transition">
+                  <X className="h-4 w-4" /> Réinitialiser
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2.5">
+              {ALL_COLORS.map(color => {
+                const active = colorFilter === color.name;
+                return (
+                  <button
+                    key={color.name}
+                    onClick={() => setColorFilter(active ? null : color.name)}
+                    title={color.name}
+                    aria-pressed={active}
+                    className={`group flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border transition ${
+                      active
+                        ? "border-gold bg-gold/10 shadow-[var(--shadow-gold)]"
+                        : "border-border hover:border-gold/60 bg-background"
+                    }`}
+                  >
+                    <span
+                      className="h-6 w-6 rounded-full ring-1 ring-border"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <span className="text-xs font-medium text-primary">{color.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {collections.map((c) => (
+            {filteredCollections.map((c) => (
               <article key={c.name} className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-gold/60 transition hover:-translate-y-1 duration-300">
                 <div className="aspect-[4/5] overflow-hidden">
                   <img src={c.img} alt={c.name} loading="lazy"
@@ -170,8 +214,19 @@ function Index() {
                 </div>
                 <div className="p-5">
                   <h3 className="font-serif text-xl text-primary mb-1">{c.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{c.desc}</p>
-                  <a href={whatsapp} target="_blank" rel="noreferrer"
+                  <p className="text-sm text-muted-foreground mb-3">{c.desc}</p>
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {c.colors.map(cn => (
+                      <span key={cn}
+                            title={cn}
+                            className={`h-4 w-4 rounded-full ring-1 ring-border ${
+                              colorFilter === cn ? "ring-2 ring-gold scale-110" : ""
+                            } transition`}
+                            style={{ backgroundColor: colorMap[cn] }} />
+                    ))}
+                  </div>
+                  <a href={`${whatsapp}?text=${encodeURIComponent(`Bonjour NAYORA, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`)}`}
+                     target="_blank" rel="noreferrer"
                      className="text-sm font-medium text-primary hover:text-gold inline-flex items-center gap-1 transition">
                     Demander un prix →
                   </a>
@@ -179,8 +234,13 @@ function Index() {
               </article>
             ))}
           </div>
+          {filteredCollections.length === 0 && (
+            <p className="text-center text-muted-foreground mt-10">
+              Aucun tissu listé pour cette couleur — contactez-nous, nous l'avons probablement en stock.
+            </p>
+          )}
           <p className="text-center text-muted-foreground mt-10 italic">
-            Et bien d'autres tissus disponibles sur demande au marché HLM 5.
+            Et bien d'autres tissus et coloris disponibles sur demande au marché HLM 5.
           </p>
         </div>
       </section>

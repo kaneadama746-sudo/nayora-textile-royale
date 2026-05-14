@@ -59,6 +59,11 @@ const features = [
 
 function Index() {
   const whatsapp = "https://wa.me/221000000000";
+  const [colorFilter, setColorFilter] = useState<string | null>(null);
+  const filteredCollections = useMemo(
+    () => colorFilter ? collections.filter(c => c.colors.includes(colorFilter)) : collections,
+    [colorFilter]
+  );
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}

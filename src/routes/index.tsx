@@ -1,5 +1,6 @@
+import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Crown, MapPin, Phone, Mail, Sparkles, Scissors, Truck, ShieldCheck, Instagram, MessageCircle } from "lucide-react";
+import { Crown, MapPin, Phone, Mail, Sparkles, Scissors, Truck, ShieldCheck, Instagram, MessageCircle, X } from "lucide-react";
 import logo from "@/assets/nayora-logo.jpg";
 import hero from "@/assets/hero-fabrics.jpg";
 import waxHollandaise from "@/assets/wax-hollandaise.jpg";

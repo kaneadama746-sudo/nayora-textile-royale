@@ -257,11 +257,27 @@ function Index() {
                             style={{ backgroundColor: colorMap[cn] }} />
                     ))}
                   </div>
-                  <a href={`${whatsapp}?text=${encodeURIComponent(`Bonjour NAYORA, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`)}`}
-                     target="_blank" rel="noreferrer"
-                     className="text-sm font-medium text-primary hover:text-gold inline-flex items-center gap-1 transition">
-                    Demander un prix →
-                  </a>
+                  {(() => {
+                    const subj = `Demande d'information — ${c.name}${colorFilter ? ` (${colorFilter})` : ""}`;
+                    const msg = `Bonjour NAYORA, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`;
+                    return (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer"
+                           title="WhatsApp"
+                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition">
+                          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                        </a>
+                        <a href={tel} title="Appel direct"
+                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition">
+                          <Phone className="h-3.5 w-3.5" /> Appeler
+                        </a>
+                        <a href={mailto(subj, msg)} title="Email"
+                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-primary text-xs font-medium hover:bg-gold-soft transition">
+                          <Mail className="h-3.5 w-3.5" /> Email
+                        </a>
+                      </div>
+                    );
+                  })()}
                 </div>
               </article>
             ))}

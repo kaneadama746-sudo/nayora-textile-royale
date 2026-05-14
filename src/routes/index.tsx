@@ -59,13 +59,43 @@ const features = [
   { icon: ShieldCheck, title: "Authenticité garantie", desc: "Wax, Bazin et Brodés certifiés d'origine." },
 ];
 
+const CONTACT_PHONE = "+221000000000"; // ← Numéro à remplacer
+const CONTACT_EMAIL = "contact@nayoratextile.sn";
+
 function Index() {
-  const whatsapp = "https://wa.me/221000000000";
+  const phoneClean = CONTACT_PHONE.replace(/[^\d+]/g, "");
+  const whatsapp = `https://wa.me/${phoneClean.replace("+", "")}`;
+  const tel = `tel:${phoneClean}`;
+  const mailto = (subject: string, body = "") =>
+    `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
   const [colorFilter, setColorFilter] = useState<string | null>(null);
   const filteredCollections = useMemo(
     () => colorFilter ? collections.filter(c => c.colors.includes(colorFilter)) : collections,
     [colorFilter]
   );
+
+  const submit = useServerFn(submitQuoteRequest);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", fabric: "", message: "" });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSending(true);
+    setFormError(null);
+    try {
+      await submit({ data: { ...form, color: colorFilter ?? "" } });
+      setSent(true);
+      setForm({ name: "", phone: "", email: "", fabric: "", message: "" });
+    } catch (err: any) {
+      setFormError(err?.message ?? "Erreur lors de l'envoi");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Nav */}

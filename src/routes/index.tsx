@@ -206,6 +206,51 @@ function Index() {
               dans toutes ses couleurs et finitions.
             </p>
           </div>
+          {/* Recherche + catégories */}
+          <div className="mb-6 p-5 rounded-2xl bg-card border border-border">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un tissu (ex: Wax, Bazin Riche, Brodé...)"
+                className="flex-1 min-w-[220px] px-4 py-2.5 rounded-lg border border-input bg-background text-sm"
+              />
+              {(search || categoryFilter || colorFilter) && (
+                <button
+                  onClick={() => { setSearch(""); setCategoryFilter(null); setColorFilter(null); }}
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-gold transition"
+                >
+                  <X className="h-4 w-4" /> Tout réinitialiser
+                </button>
+              )}
+            </div>
+            <p className="text-xs tracking-[0.25em] uppercase text-gold mb-2">Catégories de tissus</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setCategoryFilter(null)}
+                className={`px-4 py-1.5 rounded-full border text-sm transition ${
+                  !categoryFilter ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"
+                }`}
+              >
+                Tous ({collections.length})
+              </button>
+              {CATEGORIES.map(cat => {
+                const count = collections.filter(c => c.category === cat).length;
+                const active = categoryFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(active ? null : cat)}
+                    className={`px-4 py-1.5 rounded-full border text-sm transition ${
+                      active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"
+                    }`}
+                  >
+                    {cat} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           {/* Filtre par couleur */}
           <div className="mb-10 p-5 rounded-2xl bg-card border border-border">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-3">

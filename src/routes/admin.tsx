@@ -87,8 +87,10 @@ function AdminPage() {
       if (!admin.isAdmin) {
         setError("Votre compte n'a pas encore les droits administrateur. Contactez le support pour activer votre accès.");
         setQuotes([]);
+        setIsAdmin(false);
         return;
       }
+      setIsAdmin(true);
       const res = await list();
       setQuotes(res.quotes as Quote[]);
     } catch (e: any) {
@@ -99,6 +101,52 @@ function AdminPage() {
   }, [list, check, navigate]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Realtime : nouvelles demandes de devis
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("admin-quotes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "quote_requests" },
+        (payload) => {
+          const q = payload.new as Quote;
+          setQuotes((prev) => [q, ...prev]);
+          playBeep();
+          toast.success(`Nouvelle demande de ${q.name}`, {
+            description: `${q.fabric ?? "Tissu non précisé"} • ${q.phone}`,
+            duration: 8000,
+          });
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            try {
+              const n = new Notification("NAYORA — Nouvelle demande de devis", {
+                body: `${q.name} • ${q.phone}${q.fabric ? ` • ${q.fabric}` : ""}`,
+                tag: q.id,
+              });
+              n.onclick = () => { window.focus(); };
+            } catch {}
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin]);
+
+  const requestNotifPermission = async () => {
+    if (!("Notification" in window)) {
+      toast.error("Votre navigateur ne supporte pas les notifications");
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") {
+      setNotifEnabled(true);
+      toast.success("Notifications activées");
+      playBeep();
+    } else {
+      toast.error("Notifications refusées");
+    }
+  };
 
   const onStatus = async (id: string, status: string) => {
     setQuotes(qs => qs.map(q => q.id === id ? { ...q, status } : q));

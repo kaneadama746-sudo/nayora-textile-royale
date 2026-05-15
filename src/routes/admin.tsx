@@ -8,7 +8,30 @@ import {
   deleteQuoteRequest,
   checkIsAdmin,
 } from "@/lib/quotes.functions";
-import { Crown, Loader2, LogOut, Phone, Mail, MessageCircle, Trash2, RefreshCw } from "lucide-react";
+import { Crown, Loader2, LogOut, Phone, Mail, MessageCircle, Trash2, RefreshCw, Bell, BellOff } from "lucide-react";
+import { toast } from "sonner";
+
+// Contacts admin (référence)
+// WhatsApp: 221773671046 — Email: adamakane707@gmail.com
+
+// Petite alerte sonore (bip court généré via WebAudio, aucun fichier requis)
+function playBeep() {
+  try {
+    const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.value = 880;
+    g.gain.value = 0.15;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    o.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+    o.stop(ctx.currentTime + 0.45);
+  } catch {}
+}
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -46,6 +69,10 @@ function AdminPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("tous");
+  const [notifEnabled, setNotifEnabled] = useState<boolean>(
+    typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted"
+  );
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,8 +87,10 @@ function AdminPage() {
       if (!admin.isAdmin) {
         setError("Votre compte n'a pas encore les droits administrateur. Contactez le support pour activer votre accès.");
         setQuotes([]);
+        setIsAdmin(false);
         return;
       }
+      setIsAdmin(true);
       const res = await list();
       setQuotes(res.quotes as Quote[]);
     } catch (e: any) {
@@ -72,6 +101,52 @@ function AdminPage() {
   }, [list, check, navigate]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Realtime : nouvelles demandes de devis
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("admin-quotes")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "quote_requests" },
+        (payload) => {
+          const q = payload.new as Quote;
+          setQuotes((prev) => [q, ...prev]);
+          playBeep();
+          toast.success(`Nouvelle demande de ${q.name}`, {
+            description: `${q.fabric ?? "Tissu non précisé"} • ${q.phone}`,
+            duration: 8000,
+          });
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            try {
+              const n = new Notification("NAYORA — Nouvelle demande de devis", {
+                body: `${q.name} • ${q.phone}${q.fabric ? ` • ${q.fabric}` : ""}`,
+                tag: q.id,
+              });
+              n.onclick = () => { window.focus(); };
+            } catch {}
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin]);
+
+  const requestNotifPermission = async () => {
+    if (!("Notification" in window)) {
+      toast.error("Votre navigateur ne supporte pas les notifications");
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") {
+      setNotifEnabled(true);
+      toast.success("Notifications activées");
+      playBeep();
+    } else {
+      toast.error("Notifications refusées");
+    }
+  };
 
   const onStatus = async (id: string, status: string) => {
     setQuotes(qs => qs.map(q => q.id === id ? { ...q, status } : q));
@@ -105,11 +180,19 @@ function AdminPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
+            <button
+              onClick={requestNotifPermission}
+              title={notifEnabled ? "Notifications activées" : "Activer les notifications navigateur"}
+              className={`px-3 py-2 text-sm rounded-lg border inline-flex items-center gap-2 ${notifEnabled ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-100" : "border-gold/40 hover:bg-gold/10"}`}
+            >
+              {notifEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+              <span className="hidden sm:inline">{notifEnabled ? "Notifs ON" : "Activer notifs"}</span>
+            </button>
             <button onClick={load} className="px-3 py-2 text-sm rounded-lg border border-gold/40 hover:bg-gold/10 inline-flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" /> Actualiser
+              <RefreshCw className="h-4 w-4" /> <span className="hidden sm:inline">Actualiser</span>
             </button>
             <button onClick={signOut} className="px-3 py-2 text-sm rounded-lg border border-gold/40 hover:bg-gold/10 inline-flex items-center gap-2">
-              <LogOut className="h-4 w-4" /> Déconnexion
+              <LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Déconnexion</span>
             </button>
           </div>
         </div>

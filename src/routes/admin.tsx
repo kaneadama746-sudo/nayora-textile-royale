@@ -11,8 +11,8 @@ import {
 import { Crown, Loader2, LogOut, Phone, Mail, MessageCircle, Trash2, RefreshCw, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 
-const ADMIN_WHATSAPP = "221773671046";
-const ADMIN_EMAIL = "adamakane707@gmail.com";
+// Contacts admin (référence)
+// WhatsApp: 221773671046 — Email: adamakane707@gmail.com
 
 // Petite alerte sonore (bip court généré via WebAudio, aucun fichier requis)
 function playBeep() {

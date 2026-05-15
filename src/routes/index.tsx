@@ -459,7 +459,7 @@ function Index() {
                   <option value="Autre">Autre tissu</option>
                 </select>
                 <textarea rows={4} maxLength={1500} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
-                          placeholder="Votre message (quantité, couleur, etc.)"
+                          placeholder="Votre commentaire / commande (quantité, couleur, occasion, etc.)"
                           className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
                 {formError && <p className="text-sm text-destructive">{formError}</p>}
                 <button type="submit" disabled={sending}

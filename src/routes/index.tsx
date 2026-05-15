@@ -465,7 +465,7 @@ function Index() {
                 <button type="submit" disabled={sending}
                         className="w-full py-3 rounded-lg bg-gold text-primary font-semibold hover:bg-gold-soft transition flex items-center justify-center gap-2 disabled:opacity-60">
                   {sending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Envoyer la demande
+                  Commander / Envoyer la demande
                 </button>
               </>
             )}

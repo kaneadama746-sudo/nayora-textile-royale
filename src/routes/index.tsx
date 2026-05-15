@@ -39,15 +39,18 @@ const ALL_COLORS: ColorOption[] = [
   { name: "Bordeaux", hex: "#7f1d1d" },
 ];
 
-const collections = [
-  { name: "Wax Hittaguet", desc: "Tissu wax aux motifs vibrants, parfait pour vos tenues du quotidien.", img: waxHittaguet, colors: ["Bleu nuit", "Rouge", "Jaune", "Vert", "Orange", "Noir"] },
-  { name: "Wax Hollandaise", desc: "L'authentique wax hollandais, qualité supérieure et couleurs éclatantes.", img: waxHollandaise, colors: ["Bleu nuit", "Rouge", "Vert", "Jaune", "Rose", "Turquoise"] },
-  { name: "Bazin Riche", desc: "Le tissu noble par excellence, idéal pour les grandes occasions.", img: mazinGold, colors: ["Doré", "Bleu nuit", "Blanc", "Bordeaux", "Violet", "Vert"] },
-  { name: "Bazin Gold VIP", desc: "Notre gamme prestige, brillance et raffinement absolus.", img: mazinGold, colors: ["Doré", "Blanc", "Noir", "Bleu nuit", "Bordeaux"] },
-  { name: "Bazin Simple", desc: "Élégance accessible pour toutes vos confections.", img: mazinGold, colors: ["Blanc", "Beige", "Bleu nuit", "Rose", "Vert", "Jaune"] },
-  { name: "Brodé Simple", desc: "Broderies fines et délicates, finition soignée.", img: brode, colors: ["Blanc", "Beige", "Bleu nuit", "Doré"] },
-  { name: "Brodé Unisexe", desc: "Une collection moderne pensée pour homme et femme.", img: brode, colors: ["Bleu nuit", "Noir", "Blanc", "Marron", "Beige"] },
-  { name: "Brodé de la Mode", desc: "Les dernières tendances brodées de la saison.", img: brode, colors: ["Doré", "Rose", "Violet", "Turquoise", "Bordeaux", "Bleu nuit"] },
+type Category = "Wax" | "Bazin" | "Brodé";
+const CATEGORIES: Category[] = ["Wax", "Bazin", "Brodé"];
+
+const collections: { name: string; category: Category; desc: string; img: string; colors: string[] }[] = [
+  { name: "Wax Hittaguet", category: "Wax", desc: "Tissu wax aux motifs vibrants, parfait pour vos tenues du quotidien.", img: waxHittaguet, colors: ["Bleu nuit", "Rouge", "Jaune", "Vert", "Orange", "Noir"] },
+  { name: "Wax Hollandaise", category: "Wax", desc: "L'authentique wax hollandais, qualité supérieure et couleurs éclatantes.", img: waxHollandaise, colors: ["Bleu nuit", "Rouge", "Vert", "Jaune", "Rose", "Turquoise"] },
+  { name: "Bazin Riche", category: "Bazin", desc: "Le tissu noble par excellence, idéal pour les grandes occasions.", img: mazinGold, colors: ["Doré", "Bleu nuit", "Blanc", "Bordeaux", "Violet", "Vert"] },
+  { name: "Bazin Gold VIP", category: "Bazin", desc: "Notre gamme prestige, brillance et raffinement absolus.", img: mazinGold, colors: ["Doré", "Blanc", "Noir", "Bleu nuit", "Bordeaux"] },
+  { name: "Bazin Simple", category: "Bazin", desc: "Élégance accessible pour toutes vos confections.", img: mazinGold, colors: ["Blanc", "Beige", "Bleu nuit", "Rose", "Vert", "Jaune"] },
+  { name: "Brodé Simple", category: "Brodé", desc: "Broderies fines et délicates, finition soignée.", img: brode, colors: ["Blanc", "Beige", "Bleu nuit", "Doré"] },
+  { name: "Brodé Unisexe", category: "Brodé", desc: "Une collection moderne pensée pour homme et femme.", img: brode, colors: ["Bleu nuit", "Noir", "Blanc", "Marron", "Beige"] },
+  { name: "Brodé de la Mode", category: "Brodé", desc: "Les dernières tendances brodées de la saison.", img: brode, colors: ["Doré", "Rose", "Violet", "Turquoise", "Bordeaux", "Bleu nuit"] },
 ];
 
 const colorMap = Object.fromEntries(ALL_COLORS.map(c => [c.name, c.hex]));

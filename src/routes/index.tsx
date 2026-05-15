@@ -62,21 +62,31 @@ const features = [
   { icon: ShieldCheck, title: "Authenticité garantie", desc: "Wax, Bazin et Brodés certifiés d'origine." },
 ];
 
-const CONTACT_PHONE = "+221000000000"; // ← Numéro à remplacer
-const CONTACT_EMAIL = "contact@nayoratextile.sn";
+const CONTACT_PHONES = ["+221787945050", "+221787974040"];
+const CONTACT_PHONE_LABELS = ["78 794 50 50", "78 797 40 40"];
+const CONTACT_PHONE = CONTACT_PHONES[0];
+const CONTACT_EMAIL = "nayora797@gmail.com";
 
 function Index() {
   const phoneClean = CONTACT_PHONE.replace(/[^\d+]/g, "");
   const whatsapp = `https://wa.me/${phoneClean.replace("+", "")}`;
+  const waUrl = (phone: string, text?: string) =>
+    `https://wa.me/${phone.replace(/[^\d]/g, "")}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
   const tel = `tel:${phoneClean}`;
   const mailto = (subject: string, body = "") =>
     `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
   const [colorFilter, setColorFilter] = useState<string | null>(null);
-  const filteredCollections = useMemo(
-    () => colorFilter ? collections.filter(c => c.colors.includes(colorFilter)) : collections,
-    [colorFilter]
-  );
+  const [categoryFilter, setCategoryFilter] = useState<Category | null>(null);
+  const [search, setSearch] = useState("");
+  const filteredCollections = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return collections.filter(c =>
+      (!colorFilter || c.colors.includes(colorFilter)) &&
+      (!categoryFilter || c.category === categoryFilter) &&
+      (!q || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q))
+    );
+  }, [colorFilter, categoryFilter, search]);
 
   const submit = useServerFn(submitQuoteRequest);
   const [form, setForm] = useState({ name: "", phone: "", email: "", fabric: "", message: "" });

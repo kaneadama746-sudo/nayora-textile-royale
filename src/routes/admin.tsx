@@ -180,11 +180,19 @@ function AdminPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
+            <button
+              onClick={requestNotifPermission}
+              title={notifEnabled ? "Notifications activées" : "Activer les notifications navigateur"}
+              className={`px-3 py-2 text-sm rounded-lg border inline-flex items-center gap-2 ${notifEnabled ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-100" : "border-gold/40 hover:bg-gold/10"}`}
+            >
+              {notifEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+              <span className="hidden sm:inline">{notifEnabled ? "Notifs ON" : "Activer notifs"}</span>
+            </button>
             <button onClick={load} className="px-3 py-2 text-sm rounded-lg border border-gold/40 hover:bg-gold/10 inline-flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" /> Actualiser
+              <RefreshCw className="h-4 w-4" /> <span className="hidden sm:inline">Actualiser</span>
             </button>
             <button onClick={signOut} className="px-3 py-2 text-sm rounded-lg border border-gold/40 hover:bg-gold/10 inline-flex items-center gap-2">
-              <LogOut className="h-4 w-4" /> Déconnexion
+              <LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Déconnexion</span>
             </button>
           </div>
         </div>

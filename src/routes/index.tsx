@@ -384,15 +384,26 @@ function Index() {
                   <div className="text-muted-foreground">Marché HLM 5, Dakar — Sénégal</div>
                 </div>
               </div>
-              <a href={tel} className="flex items-start gap-4 group">
+              <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-gold)" }}>
                   <Phone className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <div className="font-semibold text-primary">Téléphone / WhatsApp</div>
-                  <div className="text-muted-foreground group-hover:text-gold transition">{CONTACT_PHONE}</div>
+                  <div className="flex flex-col gap-1 mt-1">
+                    {CONTACT_PHONES.map((p, i) => (
+                      <div key={p} className="flex items-center gap-2 text-sm">
+                        <a href={`tel:${p}`} className="text-muted-foreground hover:text-gold transition">{CONTACT_PHONE_LABELS[i]}</a>
+                        <span className="text-muted-foreground/40">·</span>
+                        <a href={waUrl(p, "Bonjour NAYORA TEXTILE, je souhaite passer une commande.")} target="_blank" rel="noreferrer"
+                           className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
+                          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </a>
+              </div>
               <a href={mailto("Contact NAYORA TEXTILE")} className="flex items-start gap-4 group">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-gold)" }}>
                   <Mail className="h-5 w-5 text-primary" />
@@ -404,15 +415,15 @@ function Index() {
               </a>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={whatsapp} target="_blank" rel="noreferrer"
+              <a href={waUrl(CONTACT_PHONES[0], "Bonjour NAYORA TEXTILE, je souhaite passer une commande.")} target="_blank" rel="noreferrer"
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-[var(--shadow-royal)]">
-                <MessageCircle className="h-4 w-4" /> WhatsApp
+                <MessageCircle className="h-4 w-4" /> Commander sur WhatsApp
               </a>
-              <a href={tel}
+              <a href={`tel:${CONTACT_PHONES[0]}`}
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition">
                 <Phone className="h-4 w-4" /> Appeler
               </a>
-              <a href={mailto("Demande NAYORA TEXTILE")}
+              <a href={mailto("Commande NAYORA TEXTILE")}
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gold text-primary hover:bg-gold-soft transition">
                 <Mail className="h-4 w-4" /> Email
               </a>

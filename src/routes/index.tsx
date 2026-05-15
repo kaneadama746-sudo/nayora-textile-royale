@@ -431,9 +431,9 @@ function Index() {
           </div>
           <form onSubmit={onSubmit}
                 className="p-8 rounded-2xl bg-card border border-border space-y-4 shadow-[var(--shadow-gold)]">
-            <h3 className="font-serif text-2xl text-primary mb-2">Demande de devis</h3>
+            <h3 className="font-serif text-2xl text-primary mb-2">Passer commande / Demande de devis</h3>
             <p className="text-sm text-muted-foreground -mt-2 mb-2">
-              Nous enregistrons votre demande et vous recontactons rapidement.
+              Remplissez ce formulaire avec votre commentaire ; nous vous recontactons rapidement par téléphone, WhatsApp ou email.
             </p>
             {sent ? (
               <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-center">

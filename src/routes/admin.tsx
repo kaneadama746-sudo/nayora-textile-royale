@@ -69,6 +69,10 @@ function AdminPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("tous");
+  const [notifEnabled, setNotifEnabled] = useState<boolean>(
+    typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted"
+  );
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);

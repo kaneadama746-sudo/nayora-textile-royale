@@ -39,15 +39,18 @@ const ALL_COLORS: ColorOption[] = [
   { name: "Bordeaux", hex: "#7f1d1d" },
 ];
 
-const collections = [
-  { name: "Wax Hittaguet", desc: "Tissu wax aux motifs vibrants, parfait pour vos tenues du quotidien.", img: waxHittaguet, colors: ["Bleu nuit", "Rouge", "Jaune", "Vert", "Orange", "Noir"] },
-  { name: "Wax Hollandaise", desc: "L'authentique wax hollandais, qualité supérieure et couleurs éclatantes.", img: waxHollandaise, colors: ["Bleu nuit", "Rouge", "Vert", "Jaune", "Rose", "Turquoise"] },
-  { name: "Bazin Riche", desc: "Le tissu noble par excellence, idéal pour les grandes occasions.", img: mazinGold, colors: ["Doré", "Bleu nuit", "Blanc", "Bordeaux", "Violet", "Vert"] },
-  { name: "Bazin Gold VIP", desc: "Notre gamme prestige, brillance et raffinement absolus.", img: mazinGold, colors: ["Doré", "Blanc", "Noir", "Bleu nuit", "Bordeaux"] },
-  { name: "Bazin Simple", desc: "Élégance accessible pour toutes vos confections.", img: mazinGold, colors: ["Blanc", "Beige", "Bleu nuit", "Rose", "Vert", "Jaune"] },
-  { name: "Brodé Simple", desc: "Broderies fines et délicates, finition soignée.", img: brode, colors: ["Blanc", "Beige", "Bleu nuit", "Doré"] },
-  { name: "Brodé Unisexe", desc: "Une collection moderne pensée pour homme et femme.", img: brode, colors: ["Bleu nuit", "Noir", "Blanc", "Marron", "Beige"] },
-  { name: "Brodé de la Mode", desc: "Les dernières tendances brodées de la saison.", img: brode, colors: ["Doré", "Rose", "Violet", "Turquoise", "Bordeaux", "Bleu nuit"] },
+type Category = "Wax" | "Bazin" | "Brodé";
+const CATEGORIES: Category[] = ["Wax", "Bazin", "Brodé"];
+
+const collections: { name: string; category: Category; desc: string; img: string; colors: string[] }[] = [
+  { name: "Wax Hittaguet", category: "Wax", desc: "Tissu wax aux motifs vibrants, parfait pour vos tenues du quotidien.", img: waxHittaguet, colors: ["Bleu nuit", "Rouge", "Jaune", "Vert", "Orange", "Noir"] },
+  { name: "Wax Hollandaise", category: "Wax", desc: "L'authentique wax hollandais, qualité supérieure et couleurs éclatantes.", img: waxHollandaise, colors: ["Bleu nuit", "Rouge", "Vert", "Jaune", "Rose", "Turquoise"] },
+  { name: "Bazin Riche", category: "Bazin", desc: "Le tissu noble par excellence, idéal pour les grandes occasions.", img: mazinGold, colors: ["Doré", "Bleu nuit", "Blanc", "Bordeaux", "Violet", "Vert"] },
+  { name: "Bazin Gold VIP", category: "Bazin", desc: "Notre gamme prestige, brillance et raffinement absolus.", img: mazinGold, colors: ["Doré", "Blanc", "Noir", "Bleu nuit", "Bordeaux"] },
+  { name: "Bazin Simple", category: "Bazin", desc: "Élégance accessible pour toutes vos confections.", img: mazinGold, colors: ["Blanc", "Beige", "Bleu nuit", "Rose", "Vert", "Jaune"] },
+  { name: "Brodé Simple", category: "Brodé", desc: "Broderies fines et délicates, finition soignée.", img: brode, colors: ["Blanc", "Beige", "Bleu nuit", "Doré"] },
+  { name: "Brodé Unisexe", category: "Brodé", desc: "Une collection moderne pensée pour homme et femme.", img: brode, colors: ["Bleu nuit", "Noir", "Blanc", "Marron", "Beige"] },
+  { name: "Brodé de la Mode", category: "Brodé", desc: "Les dernières tendances brodées de la saison.", img: brode, colors: ["Doré", "Rose", "Violet", "Turquoise", "Bordeaux", "Bleu nuit"] },
 ];
 
 const colorMap = Object.fromEntries(ALL_COLORS.map(c => [c.name, c.hex]));
@@ -59,21 +62,31 @@ const features = [
   { icon: ShieldCheck, title: "Authenticité garantie", desc: "Wax, Bazin et Brodés certifiés d'origine." },
 ];
 
-const CONTACT_PHONE = "+221000000000"; // ← Numéro à remplacer
-const CONTACT_EMAIL = "contact@nayoratextile.sn";
+const CONTACT_PHONES = ["+221787945050", "+221787974040"];
+const CONTACT_PHONE_LABELS = ["78 794 50 50", "78 797 40 40"];
+const CONTACT_PHONE = CONTACT_PHONES[0];
+const CONTACT_EMAIL = "nayora797@gmail.com";
 
 function Index() {
   const phoneClean = CONTACT_PHONE.replace(/[^\d+]/g, "");
   const whatsapp = `https://wa.me/${phoneClean.replace("+", "")}`;
+  const waUrl = (phone: string, text?: string) =>
+    `https://wa.me/${phone.replace(/[^\d]/g, "")}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
   const tel = `tel:${phoneClean}`;
   const mailto = (subject: string, body = "") =>
     `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
   const [colorFilter, setColorFilter] = useState<string | null>(null);
-  const filteredCollections = useMemo(
-    () => colorFilter ? collections.filter(c => c.colors.includes(colorFilter)) : collections,
-    [colorFilter]
-  );
+  const [categoryFilter, setCategoryFilter] = useState<Category | null>(null);
+  const [search, setSearch] = useState("");
+  const filteredCollections = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return collections.filter(c =>
+      (!colorFilter || c.colors.includes(colorFilter)) &&
+      (!categoryFilter || c.category === categoryFilter) &&
+      (!q || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q))
+    );
+  }, [colorFilter, categoryFilter, search]);
 
   const submit = useServerFn(submitQuoteRequest);
   const [form, setForm] = useState({ name: "", phone: "", email: "", fabric: "", message: "" });
@@ -114,7 +127,7 @@ function Index() {
             <a href="#services" className="hover:text-gold transition">Services</a>
             <a href="#contact" className="hover:text-gold transition">Contact</a>
           </nav>
-          <a href={whatsapp} target="_blank" rel="noreferrer"
+          <a href="#contact"
              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition">
             <MessageCircle className="h-4 w-4" /> Commander
           </a>
@@ -192,6 +205,51 @@ function Index() {
               Du wax éclatant au bazin prestige, découvrez l'essence du textile africain
               dans toutes ses couleurs et finitions.
             </p>
+          </div>
+          {/* Recherche + catégories */}
+          <div className="mb-6 p-5 rounded-2xl bg-card border border-border">
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un tissu (ex: Wax, Bazin Riche, Brodé...)"
+                className="flex-1 min-w-[220px] px-4 py-2.5 rounded-lg border border-input bg-background text-sm"
+              />
+              {(search || categoryFilter || colorFilter) && (
+                <button
+                  onClick={() => { setSearch(""); setCategoryFilter(null); setColorFilter(null); }}
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-gold transition"
+                >
+                  <X className="h-4 w-4" /> Tout réinitialiser
+                </button>
+              )}
+            </div>
+            <p className="text-xs tracking-[0.25em] uppercase text-gold mb-2">Catégories de tissus</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setCategoryFilter(null)}
+                className={`px-4 py-1.5 rounded-full border text-sm transition ${
+                  !categoryFilter ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"
+                }`}
+              >
+                Tous ({collections.length})
+              </button>
+              {CATEGORIES.map(cat => {
+                const count = collections.filter(c => c.category === cat).length;
+                const active = categoryFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(active ? null : cat)}
+                    className={`px-4 py-1.5 rounded-full border text-sm transition ${
+                      active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"
+                    }`}
+                  >
+                    {cat} ({count})
+                  </button>
+                );
+              })}
+            </div>
           </div>
           {/* Filtre par couleur */}
           <div className="mb-10 p-5 rounded-2xl bg-card border border-border">
@@ -326,15 +384,26 @@ function Index() {
                   <div className="text-muted-foreground">Marché HLM 5, Dakar — Sénégal</div>
                 </div>
               </div>
-              <a href={tel} className="flex items-start gap-4 group">
+              <div className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-gold)" }}>
                   <Phone className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <div className="font-semibold text-primary">Téléphone / WhatsApp</div>
-                  <div className="text-muted-foreground group-hover:text-gold transition">{CONTACT_PHONE}</div>
+                  <div className="flex flex-col gap-1 mt-1">
+                    {CONTACT_PHONES.map((p, i) => (
+                      <div key={p} className="flex items-center gap-2 text-sm">
+                        <a href={`tel:${p}`} className="text-muted-foreground hover:text-gold transition">{CONTACT_PHONE_LABELS[i]}</a>
+                        <span className="text-muted-foreground/40">·</span>
+                        <a href={waUrl(p, "Bonjour NAYORA TEXTILE, je souhaite passer une commande.")} target="_blank" rel="noreferrer"
+                           className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
+                          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </a>
+              </div>
               <a href={mailto("Contact NAYORA TEXTILE")} className="flex items-start gap-4 group">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-gold)" }}>
                   <Mail className="h-5 w-5 text-primary" />
@@ -346,15 +415,15 @@ function Index() {
               </a>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={whatsapp} target="_blank" rel="noreferrer"
+              <a href={waUrl(CONTACT_PHONES[0], "Bonjour NAYORA TEXTILE, je souhaite passer une commande.")} target="_blank" rel="noreferrer"
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-[var(--shadow-royal)]">
-                <MessageCircle className="h-4 w-4" /> WhatsApp
+                <MessageCircle className="h-4 w-4" /> Commander sur WhatsApp
               </a>
-              <a href={tel}
+              <a href={`tel:${CONTACT_PHONES[0]}`}
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition">
                 <Phone className="h-4 w-4" /> Appeler
               </a>
-              <a href={mailto("Demande NAYORA TEXTILE")}
+              <a href={mailto("Commande NAYORA TEXTILE")}
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gold text-primary hover:bg-gold-soft transition">
                 <Mail className="h-4 w-4" /> Email
               </a>
@@ -362,9 +431,9 @@ function Index() {
           </div>
           <form onSubmit={onSubmit}
                 className="p-8 rounded-2xl bg-card border border-border space-y-4 shadow-[var(--shadow-gold)]">
-            <h3 className="font-serif text-2xl text-primary mb-2">Demande de devis</h3>
+            <h3 className="font-serif text-2xl text-primary mb-2">Passer commande / Demande de devis</h3>
             <p className="text-sm text-muted-foreground -mt-2 mb-2">
-              Nous enregistrons votre demande et vous recontactons rapidement.
+              Remplissez ce formulaire avec votre commentaire ; nous vous recontactons rapidement par téléphone, WhatsApp ou email.
             </p>
             {sent ? (
               <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-center">
@@ -390,13 +459,13 @@ function Index() {
                   <option value="Autre">Autre tissu</option>
                 </select>
                 <textarea rows={4} maxLength={1500} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
-                          placeholder="Votre message (quantité, couleur, etc.)"
+                          placeholder="Votre commentaire / commande (quantité, couleur, occasion, etc.)"
                           className="w-full px-4 py-3 rounded-lg border border-input bg-background" />
                 {formError && <p className="text-sm text-destructive">{formError}</p>}
                 <button type="submit" disabled={sending}
                         className="w-full py-3 rounded-lg bg-gold text-primary font-semibold hover:bg-gold-soft transition flex items-center justify-center gap-2 disabled:opacity-60">
                   {sending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Envoyer la demande
+                  Commander / Envoyer la demande
                 </button>
               </>
             )}

@@ -8,7 +8,30 @@ import {
   deleteQuoteRequest,
   checkIsAdmin,
 } from "@/lib/quotes.functions";
-import { Crown, Loader2, LogOut, Phone, Mail, MessageCircle, Trash2, RefreshCw } from "lucide-react";
+import { Crown, Loader2, LogOut, Phone, Mail, MessageCircle, Trash2, RefreshCw, Bell, BellOff } from "lucide-react";
+import { toast } from "sonner";
+
+const ADMIN_WHATSAPP = "221773671046";
+const ADMIN_EMAIL = "adamakane707@gmail.com";
+
+// Petite alerte sonore (bip court généré via WebAudio, aucun fichier requis)
+function playBeep() {
+  try {
+    const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.value = 880;
+    g.gain.value = 0.15;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    o.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+    o.stop(ctx.currentTime + 0.45);
+  } catch {}
+}
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,

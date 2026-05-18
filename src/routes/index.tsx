@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Crown, MapPin, Phone, Mail, Sparkles, Scissors, Truck, ShieldCheck, Instagram, MessageCircle, X, Loader2, CheckCircle2 } from "lucide-react";
 import { submitQuoteRequest } from "@/lib/quotes.functions";
+import { getCatalog } from "@/lib/catalog.functions";
 import logo from "@/assets/nayora-logo.jpg";
 import hero from "@/assets/hero-fabrics.jpg";
 import waxHollandaise from "@/assets/wax-hollandaise.jpg";
@@ -14,46 +15,26 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "NAYORA TEXTILE — L'excellence textile pour toutes vos exigences" },
-      { name: "description", content: "NAYORA TEXTILE, votre référence en tissus à Dakar : Wax, Bazin Riche, Bazin Gold VIP, Brodés. Marché HLM 5, Sénégal." },
+      { title: "NAYORA — L'excellence textile pour toutes vos exigences" },
+      { name: "description", content: "NAYORA, votre référence en tissus à Dakar : Wax, Bazin Riche, Bazin Gold VIP, Brodés. Marché HLM 5, Sénégal." },
     ],
   }),
 });
 
-type ColorOption = { name: string; hex: string };
-
-const ALL_COLORS: ColorOption[] = [
-  { name: "Bleu nuit", hex: "#0b1e3f" },
-  { name: "Doré", hex: "#c9a84c" },
-  { name: "Blanc", hex: "#f5f3ee" },
-  { name: "Noir", hex: "#0d0d0d" },
-  { name: "Rouge", hex: "#b91c1c" },
-  { name: "Vert", hex: "#15803d" },
-  { name: "Jaune", hex: "#eab308" },
-  { name: "Orange", hex: "#ea580c" },
-  { name: "Rose", hex: "#db2777" },
-  { name: "Violet", hex: "#7c3aed" },
-  { name: "Marron", hex: "#78350f" },
-  { name: "Beige", hex: "#d6c7a8" },
-  { name: "Turquoise", hex: "#14b8a6" },
-  { name: "Bordeaux", hex: "#7f1d1d" },
-];
-
-type Category = "Wax" | "Bazin" | "Brodé";
-const CATEGORIES: Category[] = ["Wax", "Bazin", "Brodé"];
-
-const collections: { name: string; category: Category; desc: string; img: string; colors: string[] }[] = [
-  { name: "Wax Hittaguet", category: "Wax", desc: "Tissu wax aux motifs vibrants, parfait pour vos tenues du quotidien.", img: waxHittaguet, colors: ["Bleu nuit", "Rouge", "Jaune", "Vert", "Orange", "Noir"] },
-  { name: "Wax Hollandaise", category: "Wax", desc: "L'authentique wax hollandais, qualité supérieure et couleurs éclatantes.", img: waxHollandaise, colors: ["Bleu nuit", "Rouge", "Vert", "Jaune", "Rose", "Turquoise"] },
-  { name: "Bazin Riche", category: "Bazin", desc: "Le tissu noble par excellence, idéal pour les grandes occasions.", img: mazinGold, colors: ["Doré", "Bleu nuit", "Blanc", "Bordeaux", "Violet", "Vert"] },
-  { name: "Bazin Gold VIP", category: "Bazin", desc: "Notre gamme prestige, brillance et raffinement absolus.", img: mazinGold, colors: ["Doré", "Blanc", "Noir", "Bleu nuit", "Bordeaux"] },
-  { name: "Bazin Simple", category: "Bazin", desc: "Élégance accessible pour toutes vos confections.", img: mazinGold, colors: ["Blanc", "Beige", "Bleu nuit", "Rose", "Vert", "Jaune"] },
-  { name: "Brodé Simple", category: "Brodé", desc: "Broderies fines et délicates, finition soignée.", img: brode, colors: ["Blanc", "Beige", "Bleu nuit", "Doré"] },
-  { name: "Brodé Unisexe", category: "Brodé", desc: "Une collection moderne pensée pour homme et femme.", img: brode, colors: ["Bleu nuit", "Noir", "Blanc", "Marron", "Beige"] },
-  { name: "Brodé de la Mode", category: "Brodé", desc: "Les dernières tendances brodées de la saison.", img: brode, colors: ["Doré", "Rose", "Violet", "Turquoise", "Bordeaux", "Bleu nuit"] },
-];
-
-const colorMap = Object.fromEntries(ALL_COLORS.map(c => [c.name, c.hex]));
+const FALLBACK_IMG: Record<string, string> = {
+  "Wax Hittaguet": waxHittaguet,
+  "Wax Hollandaise": waxHollandaise,
+  "Bazin Riche": mazinGold,
+  "Bazin Gold VIP": mazinGold,
+  "Bazin Simple": mazinGold,
+  "Brodé Simple": brode,
+  "Brodé Unisexe": brode,
+  "Brodé de la Mode": brode,
+};
+function fabricImg(name: string, url?: string | null) {
+  if (url && url.trim()) return url;
+  return FALLBACK_IMG[name] ?? hero;
+}
 
 const features = [
   { icon: Sparkles, title: "Qualité Premium", desc: "Tissus sélectionnés avec soin auprès des meilleurs fournisseurs." },
@@ -62,31 +43,63 @@ const features = [
   { icon: ShieldCheck, title: "Authenticité garantie", desc: "Wax, Bazin et Brodés certifiés d'origine." },
 ];
 
-const CONTACT_PHONES = ["+221787945050", "+221787974040"];
-const CONTACT_PHONE_LABELS = ["78 794 50 50", "78 797 40 40"];
-const CONTACT_PHONE = CONTACT_PHONES[0];
-const CONTACT_EMAIL = "nayora797@gmail.com";
+type Category = { id: string; name: string; slug: string };
+type Color = { id: string; name: string; hex: string };
+type Fabric = { id: string; name: string; description: string | null; image_url: string | null; price: string | null; category_id: string | null; colors: string[] };
 
 function Index() {
-  const phoneClean = CONTACT_PHONE.replace(/[^\d+]/g, "");
+  const fetchCatalog = useServerFn(getCatalog);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [colors, setColors] = useState<Color[]>([]);
+  const [fabrics, setFabrics] = useState<Fabric[]>([]);
+  const [settings, setSettings] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    fetchCatalog().then((res: any) => {
+      setCategories(res.categories);
+      setColors(res.colors);
+      setFabrics(res.fabrics);
+      setSettings(res.settings);
+    }).catch(() => {});
+  }, [fetchCatalog]);
+
+  const site = settings.site ?? {};
+  const contact = settings.contact ?? {};
+  const siteName = site.name ?? "NAYORA";
+  const tagline = site.tagline ?? "Maison de Tissus · Dakar";
+  const heroTitle = site.heroTitle ?? "L'excellence textile";
+  const heroAccent = site.heroAccent ?? "pour toutes vos exigences";
+  const heroDesc = site.heroDesc ?? "NAYORA vous propose une sélection raffinée de Wax, Bazin et Brodés.";
+  const aboutTitle = site.aboutTitle ?? "La maison de référence du textile à Dakar";
+  const aboutText = site.aboutText ?? "Implantée au cœur du Marché HLM 5, NAYORA incarne l'élégance et la qualité.";
+  const phones: string[] = contact.phones ?? ["+221787945050", "+221787974040"];
+  const phoneLabels: string[] = contact.phoneLabels ?? ["78 794 50 50", "78 797 40 40"];
+  const email: string = contact.email ?? "nayora797@gmail.com";
+  const address: string = contact.address ?? "Marché HLM 5, Dakar — Sénégal";
+  const instagram: string = contact.instagram ?? "";
+
+  const phoneClean = (phones[0] ?? "+221787945050").replace(/[^\d+]/g, "");
   const whatsapp = `https://wa.me/${phoneClean.replace("+", "")}`;
   const waUrl = (phone: string, text?: string) =>
     `https://wa.me/${phone.replace(/[^\d]/g, "")}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
   const tel = `tel:${phoneClean}`;
   const mailto = (subject: string, body = "") =>
-    `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  const colorMap = useMemo(() => Object.fromEntries(colors.map(c => [c.name, c.hex])), [colors]);
+  const catById = useMemo(() => Object.fromEntries(categories.map(c => [c.id, c])), [categories]);
 
   const [colorFilter, setColorFilter] = useState<string | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<Category | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const filteredCollections = useMemo(() => {
+  const filteredFabrics = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return collections.filter(c =>
+    return fabrics.filter(c =>
       (!colorFilter || c.colors.includes(colorFilter)) &&
-      (!categoryFilter || c.category === categoryFilter) &&
-      (!q || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q))
+      (!categoryFilter || c.category_id === categoryFilter) &&
+      (!q || c.name.toLowerCase().includes(q) || (catById[c.category_id ?? ""]?.name.toLowerCase().includes(q)))
     );
-  }, [colorFilter, categoryFilter, search]);
+  }, [fabrics, colorFilter, categoryFilter, search, catById]);
 
   const submit = useServerFn(submitQuoteRequest);
   const [form, setForm] = useState({ name: "", phone: "", email: "", fabric: "", message: "" });
@@ -111,14 +124,13 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
       <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <a href="#top" className="flex items-center gap-3">
-            <img src={logo} alt="NAYORA TEXTILE" className="h-12 w-12 rounded-full object-cover ring-2 ring-gold/50" />
+            <img src={logo} alt={siteName} className="h-12 w-12 rounded-full object-cover ring-2 ring-gold/50" />
             <div className="leading-tight">
-              <div className="font-serif text-xl text-primary tracking-wide">NAYORA</div>
-              <div className="text-[10px] tracking-[0.3em] text-gold uppercase">Textile</div>
+              <div className="font-serif text-xl text-primary tracking-wide">{siteName}</div>
+              <div className="text-[10px] tracking-[0.3em] text-gold uppercase">Maison de Tissus</div>
             </div>
           </a>
           <nav className="hidden md:flex items-center gap-8 text-sm">
@@ -134,7 +146,6 @@ function Index() {
         </div>
       </header>
 
-      {/* Hero */}
       <section id="top" className="relative min-h-screen flex items-center pt-20 overflow-hidden"
                style={{ background: "var(--gradient-royal)" }}>
         <img src={hero} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
@@ -142,18 +153,15 @@ function Index() {
         <div className="relative max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-12 items-center">
           <div className="text-primary-foreground">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gold/40 text-gold text-xs tracking-[0.2em] uppercase mb-8">
-              <Crown className="h-3.5 w-3.5" /> Maison de Tissus · Dakar
+              <Crown className="h-3.5 w-3.5" /> {tagline}
             </div>
             <h1 className="font-serif text-5xl md:text-7xl leading-[1.05] mb-6">
-              L'excellence textile<br/>
+              {heroTitle}<br/>
               <span style={{ background: "var(--gradient-gold)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                pour toutes vos exigences
+                {heroAccent}
               </span>
             </h1>
-            <p className="text-lg text-primary-foreground/80 mb-10 max-w-xl">
-              NAYORA TEXTILE vous propose une sélection raffinée de Wax, Bazin et Brodés
-              pour sublimer chaque occasion. La tradition africaine, magnifiée.
-            </p>
+            <p className="text-lg text-primary-foreground/80 mb-10 max-w-xl">{heroDesc}</p>
             <div className="flex flex-wrap gap-4">
               <a href="#collections" className="px-8 py-4 rounded-full bg-gold text-primary font-semibold hover:bg-gold-soft transition shadow-[var(--shadow-gold)]">
                 Découvrir nos tissus
@@ -166,23 +174,21 @@ function Index() {
           </div>
           <div className="relative hidden md:block">
             <div className="absolute -inset-8 rounded-full" style={{ background: "var(--gradient-gold)", filter: "blur(80px)", opacity: 0.3 }} />
-            <img src={logo} alt="Logo NAYORA TEXTILE" className="relative w-full max-w-md mx-auto rounded-3xl shadow-[var(--shadow-royal)] ring-1 ring-gold/30" />
+            <img src={logo} alt={`Logo ${siteName}`} className="relative w-full max-w-md mx-auto rounded-3xl shadow-[var(--shadow-royal)] ring-1 ring-gold/30" />
           </div>
         </div>
       </section>
 
-      {/* Features */}
       <section id="services" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">Pourquoi NAYORA</p>
+            <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">Pourquoi {siteName}</p>
             <h2 className="font-serif text-4xl md:text-5xl text-primary">Un savoir-faire d'exception</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f) => (
               <div key={f.title} className="group p-8 rounded-2xl bg-card border border-border hover:border-gold/50 transition hover:shadow-[var(--shadow-gold)]">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
-                     style={{ background: "var(--gradient-gold)" }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ background: "var(--gradient-gold)" }}>
                   <f.icon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-serif text-xl text-primary mb-2">{f.title}</h3>
@@ -193,7 +199,6 @@ function Index() {
         </div>
       </section>
 
-      {/* Collections */}
       <section id="collections" className="py-24 px-6 bg-muted/40">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between mb-12 flex-wrap gap-6">
@@ -201,93 +206,65 @@ function Index() {
               <p className="text-gold text-xs tracking-[0.3em] uppercase mb-3">Nos Collections</p>
               <h2 className="font-serif text-4xl md:text-5xl text-primary max-w-xl">Une sélection pour chaque occasion</h2>
             </div>
-            <p className="max-w-md text-muted-foreground">
-              Du wax éclatant au bazin prestige, découvrez l'essence du textile africain
-              dans toutes ses couleurs et finitions.
-            </p>
+            <p className="max-w-md text-muted-foreground">Du wax éclatant au bazin prestige, découvrez l'essence du textile africain.</p>
           </div>
-          {/* Recherche + catégories */}
+
           <div className="mb-6 p-5 rounded-2xl bg-card border border-border">
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Rechercher un tissu (ex: Wax, Bazin Riche, Brodé...)"
-                className="flex-1 min-w-[220px] px-4 py-2.5 rounded-lg border border-input bg-background text-sm"
-              />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un tissu..."
+                className="flex-1 min-w-[220px] px-4 py-2.5 rounded-lg border border-input bg-background text-sm" />
               {(search || categoryFilter || colorFilter) && (
-                <button
-                  onClick={() => { setSearch(""); setCategoryFilter(null); setColorFilter(null); }}
-                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-gold transition"
-                >
+                <button onClick={() => { setSearch(""); setCategoryFilter(null); setColorFilter(null); }}
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-gold transition">
                   <X className="h-4 w-4" /> Tout réinitialiser
                 </button>
               )}
             </div>
             <p className="text-xs tracking-[0.25em] uppercase text-gold mb-2">Catégories de tissus</p>
             <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setCategoryFilter(null)}
-                className={`px-4 py-1.5 rounded-full border text-sm transition ${
-                  !categoryFilter ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"
-                }`}
-              >
-                Tous ({collections.length})
+              <button onClick={() => setCategoryFilter(null)}
+                className={`px-4 py-1.5 rounded-full border text-sm transition ${!categoryFilter ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"}`}>
+                Tous ({fabrics.length})
               </button>
-              {CATEGORIES.map(cat => {
-                const count = collections.filter(c => c.category === cat).length;
-                const active = categoryFilter === cat;
+              {categories.map(cat => {
+                const count = fabrics.filter(c => c.category_id === cat.id).length;
+                const active = categoryFilter === cat.id;
                 return (
-                  <button
-                    key={cat}
-                    onClick={() => setCategoryFilter(active ? null : cat)}
-                    className={`px-4 py-1.5 rounded-full border text-sm transition ${
-                      active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"
-                    }`}
-                  >
-                    {cat} ({count})
+                  <button key={cat.id} onClick={() => setCategoryFilter(active ? null : cat.id)}
+                    className={`px-4 py-1.5 rounded-full border text-sm transition ${active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"}`}>
+                    {cat.name} ({count})
                   </button>
                 );
               })}
             </div>
           </div>
-          {/* Filtre par couleur */}
+
           <div className="mb-10 p-5 rounded-2xl bg-card border border-border">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
               <div>
                 <p className="text-xs tracking-[0.25em] uppercase text-gold mb-1">Filtrer par couleur</p>
                 <p className="text-sm text-muted-foreground">
                   {colorFilter
-                    ? <>Tissus disponibles en <span className="font-semibold text-primary">{colorFilter}</span> ({filteredCollections.length})</>
+                    ? <>Tissus disponibles en <span className="font-semibold text-primary">{colorFilter}</span> ({filteredFabrics.length})</>
                     : "Cliquez sur une couleur pour affiner votre recherche"}
                 </p>
               </div>
               {colorFilter && (
                 <button onClick={() => setColorFilter(null)}
-                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-gold transition">
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-gold transition">
                   <X className="h-4 w-4" /> Réinitialiser
                 </button>
               )}
             </div>
             <div className="flex flex-wrap gap-2.5">
-              {ALL_COLORS.map(color => {
+              {colors.map(color => {
                 const active = colorFilter === color.name;
                 return (
-                  <button
-                    key={color.name}
-                    onClick={() => setColorFilter(active ? null : color.name)}
-                    title={color.name}
-                    aria-pressed={active}
-                    className={`group flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border transition ${
-                      active
-                        ? "border-gold bg-gold/10 shadow-[var(--shadow-gold)]"
-                        : "border-border hover:border-gold/60 bg-background"
-                    }`}
-                  >
-                    <span
-                      className="h-6 w-6 rounded-full ring-1 ring-border"
-                      style={{ backgroundColor: color.hex }}
-                    />
+                  <button key={color.id} onClick={() => setColorFilter(active ? null : color.name)}
+                    title={color.name} aria-pressed={active}
+                    className={`group flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border transition ${active ? "border-gold bg-gold/10 shadow-[var(--shadow-gold)]" : "border-border hover:border-gold/60 bg-background"}`}>
+                    <span className="h-6 w-6 rounded-full ring-1 ring-border" style={{ backgroundColor: color.hex }} />
                     <span className="text-xs font-medium text-primary">{color.name}</span>
                   </button>
                 );
@@ -296,41 +273,38 @@ function Index() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredCollections.map((c) => (
-              <article key={c.name} className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-gold/60 transition hover:-translate-y-1 duration-300">
+            {filteredFabrics.map((c) => (
+              <article key={c.id} className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-gold/60 transition hover:-translate-y-1 duration-300">
                 <div className="aspect-[4/5] overflow-hidden">
-                  <img src={c.img} alt={c.name} loading="lazy"
+                  <img src={fabricImg(c.name, c.image_url)} alt={c.name} loading="lazy"
                        className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
                 </div>
                 <div className="p-5">
                   <h3 className="font-serif text-xl text-primary mb-1">{c.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">{c.desc}</p>
+                  {c.description && <p className="text-sm text-muted-foreground mb-3">{c.description}</p>}
+                  {c.price && <p className="text-sm font-semibold text-gold mb-3">{c.price}</p>}
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {c.colors.map(cn => (
-                      <span key={cn}
-                            title={cn}
-                            className={`h-4 w-4 rounded-full ring-1 ring-border ${
-                              colorFilter === cn ? "ring-2 ring-gold scale-110" : ""
-                            } transition`}
-                            style={{ backgroundColor: colorMap[cn] }} />
+                      <span key={cn} title={cn}
+                        className={`h-4 w-4 rounded-full ring-1 ring-border ${colorFilter === cn ? "ring-2 ring-gold scale-110" : ""} transition`}
+                        style={{ backgroundColor: colorMap[cn] ?? "#ccc" }} />
                     ))}
                   </div>
                   {(() => {
                     const subj = `Demande d'information — ${c.name}${colorFilter ? ` (${colorFilter})` : ""}`;
-                    const msg = `Bonjour NAYORA, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`;
+                    const msg = `Bonjour ${siteName}, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`;
                     return (
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer"
-                           title="WhatsApp"
-                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition">
+                        <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" title="WhatsApp"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition">
                           <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
                         </a>
                         <a href={tel} title="Appel direct"
-                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition">
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition">
                           <Phone className="h-3.5 w-3.5" /> Appeler
                         </a>
                         <a href={mailto(subj, msg)} title="Email"
-                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-primary text-xs font-medium hover:bg-gold-soft transition">
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-primary text-xs font-medium hover:bg-gold-soft transition">
                           <Mail className="h-3.5 w-3.5" /> Email
                         </a>
                       </div>
@@ -340,9 +314,9 @@ function Index() {
               </article>
             ))}
           </div>
-          {filteredCollections.length === 0 && (
+          {filteredFabrics.length === 0 && (
             <p className="text-center text-muted-foreground mt-10">
-              Aucun tissu listé pour cette couleur — contactez-nous, nous l'avons probablement en stock.
+              Aucun tissu listé — contactez-nous, nous l'avons probablement en stock.
             </p>
           )}
           <p className="text-center text-muted-foreground mt-10 italic">
@@ -351,24 +325,15 @@ function Index() {
         </div>
       </section>
 
-      {/* About */}
       <section id="about" className="py-24 px-6 relative overflow-hidden" style={{ background: "var(--gradient-royal)" }}>
         <div className="max-w-5xl mx-auto text-center text-primary-foreground relative">
           <Crown className="h-12 w-12 text-gold mx-auto mb-6" />
           <p className="text-gold text-xs tracking-[0.3em] uppercase mb-4">À propos de nous</p>
-          <h2 className="font-serif text-4xl md:text-6xl mb-8 leading-tight">
-            La maison de référence<br />du textile à Dakar
-          </h2>
-          <p className="text-lg text-primary-foreground/80 leading-relaxed max-w-3xl mx-auto">
-            Implantée au cœur du Marché HLM 5, NAYORA TEXTILE incarne l'élégance
-            et la qualité au service des familles, couturiers et professionnels.
-            Nous sélectionnons chaque pièce pour son authenticité, sa tenue et sa beauté,
-            afin de répondre aux exigences du marché sénégalais et africain.
-          </p>
+          <h2 className="font-serif text-4xl md:text-6xl mb-8 leading-tight">{aboutTitle}</h2>
+          <p className="text-lg text-primary-foreground/80 leading-relaxed max-w-3xl mx-auto whitespace-pre-wrap">{aboutText}</p>
         </div>
       </section>
 
-      {/* Contact */}
       <section id="contact" className="py-24 px-6">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -381,7 +346,7 @@ function Index() {
                 </div>
                 <div>
                   <div className="font-semibold text-primary">Adresse</div>
-                  <div className="text-muted-foreground">Marché HLM 5, Dakar — Sénégal</div>
+                  <div className="text-muted-foreground">{address}</div>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -391,11 +356,11 @@ function Index() {
                 <div>
                   <div className="font-semibold text-primary">Téléphone / WhatsApp</div>
                   <div className="flex flex-col gap-1 mt-1">
-                    {CONTACT_PHONES.map((p, i) => (
+                    {phones.map((p, i) => (
                       <div key={p} className="flex items-center gap-2 text-sm">
-                        <a href={`tel:${p}`} className="text-muted-foreground hover:text-gold transition">{CONTACT_PHONE_LABELS[i]}</a>
+                        <a href={`tel:${p}`} className="text-muted-foreground hover:text-gold transition">{phoneLabels[i] ?? p}</a>
                         <span className="text-muted-foreground/40">·</span>
-                        <a href={waUrl(p, "Bonjour NAYORA TEXTILE, je souhaite passer une commande.")} target="_blank" rel="noreferrer"
+                        <a href={waUrl(p, `Bonjour ${siteName}, je souhaite passer une commande.`)} target="_blank" rel="noreferrer"
                            className="inline-flex items-center gap-1 text-emerald-600 hover:underline">
                           <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
                         </a>
@@ -404,36 +369,35 @@ function Index() {
                   </div>
                 </div>
               </div>
-              <a href={mailto("Contact NAYORA TEXTILE")} className="flex items-start gap-4 group">
+              <a href={mailto(`Contact ${siteName}`)} className="flex items-start gap-4 group">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-gold)" }}>
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <div className="font-semibold text-primary">Email</div>
-                  <div className="text-muted-foreground group-hover:text-gold transition">{CONTACT_EMAIL}</div>
+                  <div className="text-muted-foreground group-hover:text-gold transition">{email}</div>
                 </div>
               </a>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={waUrl(CONTACT_PHONES[0], "Bonjour NAYORA TEXTILE, je souhaite passer une commande.")} target="_blank" rel="noreferrer"
+              <a href={waUrl(phones[0] ?? "", `Bonjour ${siteName}, je souhaite passer une commande.`)} target="_blank" rel="noreferrer"
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition shadow-[var(--shadow-royal)]">
                 <MessageCircle className="h-4 w-4" /> Commander sur WhatsApp
               </a>
-              <a href={`tel:${CONTACT_PHONES[0]}`}
+              <a href={`tel:${phones[0] ?? ""}`}
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition">
                 <Phone className="h-4 w-4" /> Appeler
               </a>
-              <a href={mailto("Commande NAYORA TEXTILE")}
+              <a href={mailto(`Commande ${siteName}`)}
                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gold text-primary hover:bg-gold-soft transition">
                 <Mail className="h-4 w-4" /> Email
               </a>
             </div>
           </div>
-          <form onSubmit={onSubmit}
-                className="p-8 rounded-2xl bg-card border border-border space-y-4 shadow-[var(--shadow-gold)]">
+          <form onSubmit={onSubmit} className="p-8 rounded-2xl bg-card border border-border space-y-4 shadow-[var(--shadow-gold)]">
             <h3 className="font-serif text-2xl text-primary mb-2">Passer commande / Demande de devis</h3>
             <p className="text-sm text-muted-foreground -mt-2 mb-2">
-              Remplissez ce formulaire avec votre commentaire ; nous vous recontactons rapidement par téléphone, WhatsApp ou email.
+              Nous vous recontactons rapidement par téléphone, WhatsApp ou email.
             </p>
             {sent ? (
               <div className="p-6 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-center">
@@ -455,7 +419,7 @@ function Index() {
                 <select value={form.fabric} onChange={e => setForm({ ...form, fabric: e.target.value })}
                         className="w-full px-4 py-3 rounded-lg border border-input bg-background">
                   <option value="">Type de tissu souhaité</option>
-                  {collections.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  {fabrics.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   <option value="Autre">Autre tissu</option>
                 </select>
                 <textarea rows={4} maxLength={1500} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
@@ -473,13 +437,12 @@ function Index() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border py-12 px-6 bg-primary text-primary-foreground">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <img src={logo} alt="" className="h-10 w-10 rounded-full ring-1 ring-gold/40" />
             <div>
-              <div className="font-serif text-lg">NAYORA TEXTILE</div>
+              <div className="font-serif text-lg">{siteName}</div>
               <div className="text-xs text-gold tracking-[0.2em] uppercase">Excellence · Dakar</div>
             </div>
           </div>
@@ -488,13 +451,15 @@ function Index() {
             <a href={whatsapp} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full border border-gold/40 flex items-center justify-center hover:bg-gold/10 transition">
               <MessageCircle className="h-4 w-4 text-gold" />
             </a>
-            <a href="#" className="w-10 h-10 rounded-full border border-gold/40 flex items-center justify-center hover:bg-gold/10 transition">
-              <Instagram className="h-4 w-4 text-gold" />
-            </a>
+            {instagram && (
+              <a href={instagram} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full border border-gold/40 flex items-center justify-center hover:bg-gold/10 transition">
+                <Instagram className="h-4 w-4 text-gold" />
+              </a>
+            )}
           </div>
         </div>
         <div className="max-w-7xl mx-auto mt-6 text-xs text-primary-foreground/40 text-center">
-          © {new Date().getFullYear()} NAYORA TEXTILE. Tous droits réservés.
+          © {new Date().getFullYear()} {siteName}. Tous droits réservés.
         </div>
       </footer>
     </div>

@@ -322,7 +322,7 @@ function CategoriesTab({ items, reload }: { items: Category[]; reload: () => voi
 
       <div className="grid gap-3">
         {items.map(c => editing === c.id ? (
-          <EditCategoryRow key={c.id} cat={c} onSave={(d) => onSave(d)} onCancel={() => setEditing(null)} />
+          <EditCategoryRow key={c.id} cat={c} onSave={(d: Category) => onSave(d)} onCancel={() => setEditing(null)} />
         ) : (
           <div key={c.id} className="p-4 rounded-xl bg-card border border-border flex items-center justify-between gap-3 flex-wrap">
             <div>

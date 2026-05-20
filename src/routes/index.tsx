@@ -124,26 +124,71 @@ function Index() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-background/80 border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <a href="#top" className="flex items-center gap-3">
+      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-background/90 border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 h-20 grid grid-cols-3 items-center">
+          {/* Left: category quick tabs (wuriba.fr style) */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium tracking-wide uppercase">
+            {categories.slice(0, 4).map(cat => (
+              <button key={cat.id}
+                onClick={() => {
+                  setCategoryFilter(cat.id);
+                  setColorFilter(null);
+                  document.getElementById("collections")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className={`hover:text-gold transition ${categoryFilter === cat.id ? "text-gold" : "text-primary"}`}>
+                {cat.name}
+              </button>
+            ))}
+            {categories.length === 0 && (
+              <>
+                <a href="#collections" className="hover:text-gold transition text-primary">Collections</a>
+                <a href="#about" className="hover:text-gold transition text-primary">À propos</a>
+              </>
+            )}
+          </nav>
+
+          {/* Center: logo */}
+          <a href="#top" className="flex items-center justify-center gap-3 justify-self-center">
             <img src={logo} alt={siteName} className="h-12 w-12 rounded-full object-cover ring-2 ring-gold/50" />
-            <div className="leading-tight">
+            <div className="leading-tight text-center">
               <div className="font-serif text-xl text-primary tracking-wide">{siteName}</div>
               <div className="text-[10px] tracking-[0.3em] text-gold uppercase">Maison de Tissus</div>
             </div>
           </a>
-          <nav className="hidden md:flex items-center gap-8 text-sm">
-            <a href="#collections" className="hover:text-gold transition">Collections</a>
-            <a href="#about" className="hover:text-gold transition">À propos</a>
-            <a href="#services" className="hover:text-gold transition">Services</a>
-            <a href="#contact" className="hover:text-gold transition">Contact</a>
-          </nav>
-          <a href="#contact"
-             className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition">
-            <MessageCircle className="h-4 w-4" /> Commander
-          </a>
+
+          {/* Right: quick actions */}
+          <div className="flex items-center justify-end gap-4 text-sm">
+            <a href="#about" className="hidden lg:inline hover:text-gold transition text-primary">À propos</a>
+            <a href="#contact" className="hidden lg:inline hover:text-gold transition text-primary">Contact</a>
+            <a href={whatsapp} target="_blank" rel="noreferrer"
+               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">
+              <MessageCircle className="h-4 w-4" /> WhatsApp
+            </a>
+            <a href="#contact"
+               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition">
+              Commander
+            </a>
+          </div>
         </div>
+
+        {/* Mobile category tab strip */}
+        {categories.length > 0 && (
+          <div className="md:hidden border-t border-border bg-background/95 overflow-x-auto">
+            <div className="flex items-center gap-2 px-4 py-2 min-w-max">
+              <button onClick={() => { setCategoryFilter(null); document.getElementById("collections")?.scrollIntoView({ behavior: "smooth" }); }}
+                className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border ${!categoryFilter ? "bg-primary text-primary-foreground border-primary" : "border-border text-primary"}`}>
+                Tous
+              </button>
+              {categories.map(cat => (
+                <button key={cat.id}
+                  onClick={() => { setCategoryFilter(cat.id); document.getElementById("collections")?.scrollIntoView({ behavior: "smooth" }); }}
+                  className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border uppercase tracking-wide ${categoryFilter === cat.id ? "bg-primary text-primary-foreground border-primary" : "border-border text-primary"}`}>
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       <section id="top" className="relative min-h-screen flex items-center pt-20 overflow-hidden"

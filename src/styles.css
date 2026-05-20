@@ -45,7 +45,7 @@
   --gold: oklch(0.78 0.13 80);
   --gold-soft: oklch(0.86 0.09 85);
 
-  --background: oklch(0.98 0.005 80);
+  --background: oklch(0.95 0.05 88);
   --foreground: oklch(0.21 0.05 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.05 260);

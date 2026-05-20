@@ -219,8 +219,52 @@ function Index() {
             <p className="max-w-md text-muted-foreground">Du wax éclatant au bazin prestige, découvrez l'essence du textile africain.</p>
           </div>
 
+          {/* Category showcase — gros boutons visuels */}
+          <div className="mb-10">
+            <p className="text-xs tracking-[0.3em] uppercase text-gold mb-4 text-center">Choisissez votre catégorie préférée</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <button
+                onClick={() => setCategoryFilter(null)}
+                className={`group relative overflow-hidden rounded-2xl aspect-[4/3] border-2 transition-all duration-300 ${!categoryFilter ? "border-gold shadow-[var(--shadow-gold)] scale-[1.02]" : "border-border hover:border-gold/60 hover:-translate-y-1"}`}
+                style={{ background: "var(--gradient-royal)" }}
+              >
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-primary-foreground p-3">
+                  <Crown className="h-7 w-7 mb-2 text-gold" />
+                  <div className="font-serif text-lg leading-none">Tous</div>
+                  <div className="text-[11px] tracking-[0.2em] uppercase text-gold mt-2">{fabrics.length} tissus</div>
+                </div>
+              </button>
+              {categories.map(cat => {
+                const catFabrics = fabrics.filter(c => c.category_id === cat.id);
+                const active = categoryFilter === cat.id;
+                const preview = catFabrics.find(f => f.image_url)?.image_url
+                  ?? fabricImg(catFabrics[0]?.name ?? cat.name, catFabrics[0]?.image_url);
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setCategoryFilter(active ? null : cat.id)}
+                    className={`group relative overflow-hidden rounded-2xl aspect-[4/3] border-2 transition-all duration-300 ${active ? "border-gold shadow-[var(--shadow-gold)] scale-[1.02]" : "border-border hover:border-gold/60 hover:-translate-y-1"}`}
+                  >
+                    <img src={preview} alt={cat.name} loading="lazy"
+                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-end text-white p-3 text-center">
+                      <div className="font-serif text-lg leading-tight drop-shadow-lg">{cat.name}</div>
+                      <div className="text-[11px] tracking-[0.2em] uppercase text-gold mt-1.5">{catFabrics.length} tissus</div>
+                    </div>
+                    {active && (
+                      <div className="absolute top-2 right-2 h-7 w-7 rounded-full bg-gold flex items-center justify-center shadow-lg">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="mb-6 p-5 rounded-2xl bg-card border border-border">
-            <div className="flex flex-wrap items-center gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3">
               <input value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Rechercher un tissu..."
                 className="flex-1 min-w-[220px] px-4 py-2.5 rounded-lg border border-input bg-background text-sm" />
@@ -231,24 +275,8 @@ function Index() {
                 </button>
               )}
             </div>
-            <p className="text-xs tracking-[0.25em] uppercase text-gold mb-2">Catégories de tissus</p>
-            <div className="flex flex-wrap gap-2">
-              <button onClick={() => setCategoryFilter(null)}
-                className={`px-4 py-1.5 rounded-full border text-sm transition ${!categoryFilter ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"}`}>
-                Tous ({fabrics.length})
-              </button>
-              {categories.map(cat => {
-                const count = fabrics.filter(c => c.category_id === cat.id).length;
-                const active = categoryFilter === cat.id;
-                return (
-                  <button key={cat.id} onClick={() => setCategoryFilter(active ? null : cat.id)}
-                    className={`px-4 py-1.5 rounded-full border text-sm transition ${active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:border-gold/60"}`}>
-                    {cat.name} ({count})
-                  </button>
-                );
-              })}
-            </div>
           </div>
+
 
           <div className="mb-10 p-5 rounded-2xl bg-card border border-border">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-3">

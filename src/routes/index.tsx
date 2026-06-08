@@ -310,47 +310,84 @@ function Index() {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredFabrics.map((c) => (
-              <article key={c.id} className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-gold/60 transition hover:-translate-y-1 duration-300">
-                <div className="aspect-[4/5] overflow-hidden">
-                  <img src={fabricImg(c.name, c.image_url)} alt={c.name} loading="lazy"
-                       className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
-                </div>
-                <div className="p-5">
-                  <h3 className="font-serif text-xl text-primary mb-1">{c.name}</h3>
-                  {c.description && <p className="text-sm text-muted-foreground mb-3">{c.description}</p>}
-                  {c.price && <p className="text-sm font-semibold text-gold mb-3">{c.price}</p>}
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {c.colors.map(cn => (
-                      <span key={cn} title={cn}
-                        className={`h-4 w-4 rounded-full ring-1 ring-border ${colorFilter === cn ? "ring-2 ring-gold scale-110" : ""} transition`}
-                        style={{ backgroundColor: colorMap[cn] ?? "#ccc" }} />
-                    ))}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredFabrics.map((c) => {
+              const catName = catById[c.category_id ?? ""]?.name;
+              const subj = `Demande d'information — ${c.name}${colorFilter ? ` (${colorFilter})` : ""}`;
+              const msg = `Bonjour ${siteName}, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`;
+              return (
+                <article key={c.id}
+                  className="group relative flex flex-col rounded-3xl overflow-hidden bg-card border border-border/70 shadow-sm hover:shadow-[var(--shadow-gold)] hover:border-gold/60 transition-all duration-500 hover:-translate-y-1.5">
+                  {/* Image */}
+                  <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+                    <img src={fabricImg(c.name, c.image_url)} alt={c.name} loading="lazy"
+                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-[1200ms] ease-out" />
+                    {/* Gradient sheen */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 opacity-90" />
+
+                    {/* Top badges */}
+                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                      {catName && (
+                        <span className="px-2.5 py-1 rounded-full bg-white/90 backdrop-blur text-[10px] tracking-[0.18em] uppercase font-semibold text-primary shadow-sm">
+                          {catName}
+                        </span>
+                      )}
+                      {c.price && (
+                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold text-primary shadow-md"
+                              style={{ background: "var(--gradient-gold)" }}>
+                          {c.price}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom title overlay */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 text-white">
+                      <h3 className="font-serif text-xl leading-tight drop-shadow-md">{c.name}</h3>
+                      {c.colors.length > 0 && (
+                        <div className="flex gap-1.5 mt-2">
+                          {c.colors.slice(0, 6).map(cn => (
+                            <span key={cn} title={cn}
+                              className={`h-4 w-4 rounded-full ring-2 ring-white/80 ${colorFilter === cn ? "scale-125 ring-gold" : ""} transition`}
+                              style={{ backgroundColor: colorMap[cn] ?? "#ccc" }} />
+                          ))}
+                          {c.colors.length > 6 && (
+                            <span className="text-[10px] text-white/90 ml-1 self-center">+{c.colors.length - 6}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hover quick-order overlay */}
+                    <div className="absolute inset-0 bg-primary/85 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col items-center justify-center gap-3 p-4 text-center">
+                      <Crown className="h-7 w-7 text-gold" />
+                      <p className="text-primary-foreground text-sm font-medium max-w-[220px]">
+                        {c.description || "Commandez ou demandez plus d'informations sur ce tissu."}
+                      </p>
+                      <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer"
+                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold text-primary text-xs font-bold uppercase tracking-wider hover:bg-gold-soft transition shadow-lg">
+                        <MessageCircle className="h-4 w-4" /> Commander
+                      </a>
+                    </div>
                   </div>
-                  {(() => {
-                    const subj = `Demande d'information — ${c.name}${colorFilter ? ` (${colorFilter})` : ""}`;
-                    const msg = `Bonjour ${siteName}, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`;
-                    return (
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" title="WhatsApp"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition">
-                          <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                        </a>
-                        <a href={tel} title="Appel direct"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition">
-                          <Phone className="h-3.5 w-3.5" /> Appeler
-                        </a>
-                        <a href={mailto(subj, msg)} title="Email"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-primary text-xs font-medium hover:bg-gold-soft transition">
-                          <Mail className="h-3.5 w-3.5" /> Email
-                        </a>
-                      </div>
-                    );
-                  })()}
-                </div>
-              </article>
-            ))}
+
+                  {/* Footer actions */}
+                  <div className="p-4 flex items-center justify-between gap-2 bg-card">
+                    <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" title="WhatsApp"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">
+                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                    </a>
+                    <a href={tel} title="Appeler"
+                      className="w-9 h-9 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition" aria-label="Appeler">
+                      <Phone className="h-3.5 w-3.5" />
+                    </a>
+                    <a href={mailto(subj, msg)} title="Email"
+                      className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-gold/60 text-primary hover:bg-gold/10 transition" aria-label="Email">
+                      <Mail className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                </article>
+              );
+            })}
           </div>
           {filteredFabrics.length === 0 && (
             <p className="text-center text-muted-foreground mt-10">

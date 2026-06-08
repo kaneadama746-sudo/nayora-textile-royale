@@ -317,73 +317,63 @@ function Index() {
               const msg = `Bonjour ${siteName}, je souhaite des informations sur ${c.name}${colorFilter ? ` en couleur ${colorFilter}` : ""}.`;
               return (
                 <article key={c.id}
-                  className="group relative flex flex-col rounded-3xl overflow-hidden bg-card border border-border/70 shadow-sm hover:shadow-[var(--shadow-gold)] hover:border-gold/60 transition-all duration-500 hover:-translate-y-1.5">
-                  {/* Image */}
-                  <div className="relative aspect-[4/5] overflow-hidden bg-muted">
-                    <img src={fabricImg(c.name, c.image_url)} alt={c.name} loading="lazy"
-                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-[1200ms] ease-out" />
-                    {/* Gradient sheen */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0 opacity-90" />
+                  className="group flex flex-col rounded-2xl overflow-hidden bg-card border border-border/70 shadow-sm hover:shadow-[var(--shadow-gold)] hover:border-gold/60 transition-all duration-500 hover:-translate-y-1.5">
+                  {/* Image — cadre interne, pas full-bleed */}
+                  <div className="p-4 pb-0">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+                      <img src={fabricImg(c.name, c.image_url)} alt={c.name} loading="lazy"
+                           className="w-full h-full object-cover group-hover:scale-105 transition duration-700 ease-out" />
+                    </div>
+                  </div>
 
-                    {/* Top badges */}
-                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                  {/* Contenu */}
+                  <div className="flex flex-col flex-1 p-4 pt-3">
+                    <div className="flex items-start justify-between gap-2 mb-1">
                       {catName && (
-                        <span className="px-2.5 py-1 rounded-full bg-white/90 backdrop-blur text-[10px] tracking-[0.18em] uppercase font-semibold text-primary shadow-sm">
+                        <span className="px-2 py-0.5 rounded-full bg-muted text-[10px] tracking-[0.18em] uppercase font-semibold text-muted-foreground">
                           {catName}
                         </span>
                       )}
                       {c.price && (
-                        <span className="px-2.5 py-1 rounded-full text-[11px] font-bold text-primary shadow-md"
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-bold text-primary"
                               style={{ background: "var(--gradient-gold)" }}>
                           {c.price}
                         </span>
                       )}
                     </div>
 
-                    {/* Bottom title overlay */}
-                    <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-                      <h3 className="font-serif text-xl leading-tight drop-shadow-md">{c.name}</h3>
-                      {c.colors.length > 0 && (
-                        <div className="flex gap-1.5 mt-2">
-                          {c.colors.slice(0, 6).map(cn => (
-                            <span key={cn} title={cn}
-                              className={`h-4 w-4 rounded-full ring-2 ring-white/80 ${colorFilter === cn ? "scale-125 ring-gold" : ""} transition`}
-                              style={{ backgroundColor: colorMap[cn] ?? "#ccc" }} />
-                          ))}
-                          {c.colors.length > 6 && (
-                            <span className="text-[10px] text-white/90 ml-1 self-center">+{c.colors.length - 6}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <h3 className="font-serif text-lg text-primary leading-tight mb-1">{c.name}</h3>
+                    {c.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{c.description}</p>
+                    )}
 
-                    {/* Hover quick-order overlay */}
-                    <div className="absolute inset-0 bg-primary/85 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col items-center justify-center gap-3 p-4 text-center">
-                      <Crown className="h-7 w-7 text-gold" />
-                      <p className="text-primary-foreground text-sm font-medium max-w-[220px]">
-                        {c.description || "Commandez ou demandez plus d'informations sur ce tissu."}
-                      </p>
-                      <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer"
-                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold text-primary text-xs font-bold uppercase tracking-wider hover:bg-gold-soft transition shadow-lg">
-                        <MessageCircle className="h-4 w-4" /> Commander
+                    {c.colors.length > 0 && (
+                      <div className="flex gap-1.5 mt-auto mb-3">
+                        {c.colors.slice(0, 6).map(cn => (
+                          <span key={cn} title={cn}
+                            className={`h-4 w-4 rounded-full ring-1 ring-border ${colorFilter === cn ? "scale-125 ring-gold" : ""} transition`}
+                            style={{ backgroundColor: colorMap[cn] ?? "#ccc" }} />
+                        ))}
+                        {c.colors.length > 6 && (
+                          <span className="text-[10px] text-muted-foreground ml-1 self-center">+{c.colors.length - 6}</span>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 mt-auto">
+                      <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" title="WhatsApp"
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">
+                        <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                      </a>
+                      <a href={tel} title="Appeler"
+                        className="w-9 h-9 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition" aria-label="Appeler">
+                        <Phone className="h-3.5 w-3.5" />
+                      </a>
+                      <a href={mailto(subj, msg)} title="Email"
+                        className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-gold/60 text-primary hover:bg-gold/10 transition" aria-label="Email">
+                        <Mail className="h-3.5 w-3.5" />
                       </a>
                     </div>
-                  </div>
-
-                  {/* Footer actions */}
-                  <div className="p-4 flex items-center justify-between gap-2 bg-card">
-                    <a href={`${whatsapp}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" title="WhatsApp"
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-full bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition">
-                      <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                    </a>
-                    <a href={tel} title="Appeler"
-                      className="w-9 h-9 inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition" aria-label="Appeler">
-                      <Phone className="h-3.5 w-3.5" />
-                    </a>
-                    <a href={mailto(subj, msg)} title="Email"
-                      className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-gold/60 text-primary hover:bg-gold/10 transition" aria-label="Email">
-                      <Mail className="h-3.5 w-3.5" />
-                    </a>
                   </div>
                 </article>
               );
